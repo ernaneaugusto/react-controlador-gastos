@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import './App.css';
 import 'mdbootstrap/css/bootstrap.min.css';
 import axios from 'axios';
@@ -6,20 +6,44 @@ import axios from 'axios';
 // const URL = 'https://react-controlador-gastos.firebaseio.com/';
 const URL = 'http://localhost:3001/movimentacoes';
 
+const initialState = {
+  loading: true,
+  data: {}
+}
 
+const reducer = (state, action) => {
+  if(action.type === 'REQUEST') {
+    return {
+      ...state,
+      loading: true
+    }
+  }
+
+  if(action.type === 'SUCCESS') {
+    return {
+      ...state,
+      loading: false,
+      data: action.data
+    }
+  }
+
+  return state;
+}
 
 const App = () => {
 
-  const [data, setData] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [data, dispatch] = useReducer(reducer, initialState);
 
   useEffect(() => {
-    setLoading(true);
+
+    dispatch({ type: 'REQUEST' });
 
     axios.get(URL)
       .then((res) => {
-        setData(res.data);
-        setLoading(false);
+        dispatch({
+          type: 'SUCCESS',
+          data: res.data
+        });
       });
   }, []);
 
@@ -34,7 +58,7 @@ const App = () => {
                 <h1 className='main-title'>My Money</h1>
                 <p>Data: {JSON.stringify(data)}</p>
 
-                {loading &&
+                {data.loading &&
                   <p className="alert alert-info text-center pt-3">Carregando...</p>
                 }
               </div>
